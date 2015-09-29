@@ -814,6 +814,21 @@ eom
     end
   end
 
+  def test_super_end
+    assert_valid_syntax(<<-END)
+    if true
+      for x in bar()
+        x.each do
+    !end
+    END
+    assert_syntax_error(<<-END)
+    if true
+      for x in bar()
+        x.each do
+     !end
+    END
+  end
+
   private
 
   def not_label(x) @result = x; @not_label ||= nil end
