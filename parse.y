@@ -391,6 +391,8 @@ static NODE *evstr2dstr_gen(struct parser_params*,NODE*);
 #define evstr2dstr(n) evstr2dstr_gen(parser,(n))
 static NODE *splat_array(NODE*);
 
+static NODE *new_cmpseq_gen(struct parser_params*,NODE*,ID,NODE*);
+#define new_cmpseq(left,id,right) new_cmpseq_gen(parser, (left),(id),(right))
 static NODE *call_bin_op_gen(struct parser_params*,NODE*,ID,NODE*);
 #define call_bin_op(recv,id,arg1) call_bin_op_gen(parser, (recv),(id),(arg1))
 static NODE *call_uni_op_gen(struct parser_params*,NODE*,ID);
@@ -893,7 +895,7 @@ static void token_info_pop_gen(struct parser_params*, const char *token, size_t 
 %type <node> literal numeric simple_numeric dsym cpath
 %type <node> top_compstmt top_stmts top_stmt
 %type <node> bodystmt compstmt stmts stmt_or_begin stmt expr arg primary command command_call method_call
-%type <node> expr_value arg_value primary_value fcall
+%type <node> expr_value arg_value primary_value fcall rel_expr
 %type <node> if_tail opt_else case_body cases opt_rescue exc_list exc_var opt_ensure
 %type <node> args call_args opt_call_args
 %type <node> paren_args opt_paren_args args_tail opt_args_tail block_args_tail opt_block_args_tail
@@ -2095,14 +2097,7 @@ arg		: lhs '=' arg_rhs
 		    {
 			$$ = call_bin_op($1, idCmp, $3);
 		    }
-		| arg relop arg   %prec tGEQ
-		    {
-		    /*%%%*/
-			$$ = call_bin_op($1, $2, $3);
-		    /*%
-			$$ = dispatch3(binary, $1, $2, $3);
-		    %*/
-		    }
+		| rel_expr   %prec tGEQ
 		| arg tEQ arg
 		    {
 			$$ = call_bin_op($1, idEq, $3);
@@ -2202,6 +2197,24 @@ relop		: '>'
 			$$ = idLE;
 		    /*%
 			$$ = ID2SYM(idLE);
+		    %*/
+		    }
+		;
+
+rel_expr	: arg relop arg   %prec tGEQ
+		    {
+		    /*%%%*/
+			$$ = call_bin_op($1, $2, $3);
+		    /*%
+			$$ = dispatch3(binary, $1, $2, $3);
+		    %*/
+		    }
+		| rel_expr relop arg   %prec tGEQ
+		    {
+		    /*%%%*/
+			$$ = new_cmpseq($1, $2, $3);
+		    /*%
+			$$ = dispatch3(binary, $1, $2, $3);
 		    %*/
 		    }
 		;
@@ -8856,6 +8869,23 @@ new_evstr_gen(struct parser_params *parser, NODE *node)
 	}
     }
     return NEW_EVSTR(head);
+}
+
+static NODE *
+new_cmpseq_gen(struct parser_params *parser, NODE *left, ID id, NODE *right)
+{
+    NODE *seq = left;
+    value_expr(right);
+    if (nd_type(seq) == NODE_CALL) {
+	seq = left->nd_args;
+	nd_set_type(seq, NODE_CMPSEQ);
+	nd_set_type(left, NODE_CMPSEQ);
+	left->nd_next = seq->nd_head;
+	seq->nd_head = seq->nd_next = left;
+    }
+    left = seq->nd_next;
+    seq->nd_next = left->nd_next = NEW_CMPSEQ(left->nd_next, id, right);
+    return seq;
 }
 
 static NODE *

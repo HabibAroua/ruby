@@ -230,6 +230,8 @@ enum node_type {
 #define NODE_PRELUDE     NODE_PRELUDE
     NODE_LAMBDA,
 #define NODE_LAMBDA      NODE_LAMBDA
+    NODE_CMPSEQ,
+#define NODE_CMPSEQ      NODE_CMPSEQ
     NODE_LAST
 #define NODE_LAST        NODE_LAST
 };
@@ -456,6 +458,7 @@ typedef struct RNode {
 #define NEW_BMETHOD(b) NEW_NODE(NODE_BMETHOD,0,0,b)
 #define NEW_ATTRASGN(r,m,a) NEW_NODE(NODE_ATTRASGN,r,m,a)
 #define NEW_PRELUDE(p,b,o) NEW_NODE(NODE_PRELUDE,p,b,o)
+#define NEW_CMPSEQ(l,o,r) NEW_NODE(NODE_CMPSEQ,l,o,r)
 
 RUBY_SYMBOL_EXPORT_BEGIN
 

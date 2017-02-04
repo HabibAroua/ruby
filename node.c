@@ -346,6 +346,25 @@ dump_node(VALUE buf, VALUE indent, int comment, NODE *node)
 	F_NODE(nd_2nd, "right expr");
 	break;
 
+      case NODE_CMPSEQ:
+	ANN("comparison sequence");
+	ANN("format: [nd_head] op [nd_next] op ...");
+	ANN("example: 0 <= foo < 10");
+	{
+	    NODE *end = node->nd_next;
+	    node = node->nd_head;
+	    F_NODE(nd_head, "left");
+	    F_ID(nd_mid, "operator");
+	    while (node != end) {
+		node = node->nd_next;
+		F_NODE(nd_head, "middle");
+		F_ID(nd_mid, "operator");
+	    }
+	    LAST_NODE;
+	    F_NODE(nd_next, "right");
+	}
+	break;
+
       case NODE_MASGN:
 	ANN("multiple assignment");
 	ANN("format: [nd_head], [nd_args] = [nd_value]");
@@ -1082,6 +1101,7 @@ rb_gc_mark_node(NODE *obj)
       case NODE_CALL:
       case NODE_DEFS:
       case NODE_OP_ASGN1:
+      case NODE_CMPSEQ:
 	rb_gc_mark(RNODE(obj)->u1.value);
 	/* fall through */
       case NODE_SUPER:	/* 3 */
