@@ -1073,6 +1073,12 @@ eom
     assert_equal(:begin, result)
   end
 
+  def test_comparison_sequence
+    x = 2
+    assert_equal(true, 1 < x <= 2)
+    assert_equal(false, 1 > x <= 2)
+  end
+
   private
 
   def not_label(x) @result = x; @not_label ||= nil end
