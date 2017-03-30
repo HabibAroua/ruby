@@ -7,6 +7,7 @@ environment:
   zlib_version: "1.2.11"
   UNICODE_VERSION: "9.0.0"
   UNICODE_URL_BASE: "http://www.unicode.org/Public/%UNICODE_VERSION%/ucd/"
+  RUBYSPEC_PULL_REQUEST: "401"
   matrix:
     - vs: "120"
 install:
@@ -38,8 +39,12 @@ build_script:
   - nmake -l up UNICODE_FILES=.
   - nmake -l
   - nmake install-nodoc
+  - for %%I in (%RUBYSPEC_PULL_REQUEST%) do git -C spec/rubyspec pull origin +refs/pull/%%I/merge:
 test_script:
   - nmake -l "TESTOPTS=-v -q" btest
   - nmake -l "TESTOPTS=-v -q" test-basic
+  - nmake -l "TESTOPTS=-v -q" test-testframework
+  - nmake -l "TESTOPTS=-v -q" test-almost
+  - if not "%RUBYSPEC_PULL_REQUEST%" == "" nmake -l "TESTOPTS=-v -q" test-rubyspec
 matrix:
   fast_finish: true
