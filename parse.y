@@ -2097,7 +2097,7 @@ arg		: lhs '=' arg_rhs
 		    {
 			$$ = call_bin_op($1, idCmp, $3);
 		    }
-		| rel_expr   %prec tGEQ
+		| rel_expr   %prec tCMP
 		| arg tEQ arg
 		    {
 			$$ = call_bin_op($1, idEq, $3);
