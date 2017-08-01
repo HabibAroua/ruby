@@ -7818,7 +7818,10 @@ parse_ident(struct parser_params *parser, int c, int cmd_state)
 	tokadd(c);
     }
     else {
-	result = ISUPPER(tok()[0]) ? tCONSTANT : tIDENTIFIER;
+	int t = tok()[0];
+	result = (ISASCII(t) ? ISUPPER(t) :
+		  rb_sym_constant_char_p(tok(), toklen(), current_enc)) ?
+	    tCONSTANT : tIDENTIFIER;
 	pushback(c);
     }
     tokfix();
